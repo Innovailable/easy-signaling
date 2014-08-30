@@ -21,9 +21,8 @@ the listening socket of the server.
 
 ## Library
 
-If you want to include the server in your project install the library with
-
-    npm install easy-signaling
+If you want to include the server in your project install add the dependency
+'easy-signaling' to your package.json.
 
 The central element of the signaling server is called `Hotel`. It contains
 `Room`s which contain `Guest`s. To create a `Hotel` simply type something like
