@@ -2,10 +2,17 @@
     "name": "easy-signaling",
     "description": "A WebRTC signaling server",
     "version": "0.1.0",
-    "private": true,
     "dependencies": {
         "ws": "",
         "log4js": "",
         "node-uuid": ""
+    },
+    "devDependencies": {
+        "coffee-script": ""
+    },
+    "main": "dist/signaling.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Innovailable/easy-signaling.git"
     }
 }
