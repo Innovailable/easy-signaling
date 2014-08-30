@@ -19,13 +19,16 @@
 #
 ###############################################################################
 
+BIND_PORT = process.env.BIND_PORT ? 8080
+BIND_HOST = process.env.BIND_HOST ? "0.0.0.0"
+
 WebSocketServer = require('ws').Server
 Hotel = require('./signaling').Hotel
 
 # start doing stuff ...
 hotel = new Hotel()
-wss = new WebSocketServer({port: 8080})
+wss = new WebSocketServer({port: BIND_PORT, host: BIND_HOST})
 
 wss.on 'connection', (ws) ->
-  hotel.create_guest(ws, hotel)
+  hotel.create_guest(ws)
 
