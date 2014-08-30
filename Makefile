@@ -10,6 +10,7 @@ clean:
 
 build:
 	coffee -o dist/ -c src/
+	sed -i '1i#!/usr/bin/env node' dist/main.js
 
 dist: clean init build
 	npm pack
