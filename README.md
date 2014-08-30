@@ -16,8 +16,11 @@ To use the signaling server in standalone mode simply run
 
     easy-signaling
 
-You can use the environment variables `BIND_PORT` and `BIND_HOST` to configure
-the listening socket of the server.
+You can use the environment variables `BIND_PORT` (defaults to 8080) and
+`BIND_HOST` (defaults to 0.0.0.0) to configure the listening socket of the
+server. A websocket server will be listening on the specified port and provide
+signaling to clients using the [palava
+protocol](https://github.com/palavatv/palava-client/wiki/Protocol).
 
 ## Library
 
