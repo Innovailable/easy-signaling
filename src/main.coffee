@@ -19,6 +19,8 @@
 #
 ###############################################################################
 
+logger = require('log4js').getLogger()
+
 BIND_PORT = process.env.BIND_PORT ? 8080
 BIND_HOST = process.env.BIND_HOST ? "0.0.0.0"
 
@@ -29,6 +31,9 @@ Hotel = require('./signaling').Hotel
 hotel = new Hotel()
 wss = new WebSocketServer({port: BIND_PORT, host: BIND_HOST})
 
+logger.info("Starting server on '" + BIND_HOST + ":" + BIND_PORT + "'")
+
 wss.on 'connection', (ws) ->
+  logger.debug("Accepting connection")
   hotel.create_guest(ws)
 
