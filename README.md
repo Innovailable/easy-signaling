@@ -43,3 +43,7 @@ protocol](https://github.com/palavatv/palava-client/wiki/Protocol). The
 `connection` object has to emit the events `message` and `close` and has to
 support the method `send(data)`.
 
+The `Guest` might join a room if it receives a `join_room` message from the
+client. You do not have to do anything else on the server side to make
+signaling work. Clients in the same room will communicate with each other.
+
