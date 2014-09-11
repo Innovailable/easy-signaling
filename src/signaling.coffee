@@ -97,16 +97,11 @@ class Guest extends EventEmitter
   constructor: (@conn, @hotel) ->
     @id = uuid.v4()
     conn.on 'message', (data) => @receive(data)
+    conn.on 'error', (msg) => @error(msg)
     conn.on 'close', () => @closing()
 
 
-  receive: (msg) ->
-    try
-      data = JSON.parse(msg)
-    catch
-      @error("Error parsing incoming message: " + data)
-      return
-
+  receive: (data) ->
     if not data.event?
       @error("Incoming message does not include event")
       return
@@ -167,8 +162,7 @@ class Guest extends EventEmitter
 
 
   send: (data) ->
-    msg = JSON.stringify(data)
-    @conn.send(msg)
+    @conn.send(data)
 
 
   error: (msg) ->

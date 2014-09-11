@@ -40,8 +40,11 @@ To add a `Guest` to the `Hotel` do
 `connection` should be a communication channel with the client. The client has
 to speak the [palava
 protocol](https://github.com/palavatv/palava-client/wiki/Protocol). The
-`connection` object has to emit the events `message` and `close` and has to
-support the method `send(data)`.
+`connection` object has to emit the events `message` and `close`, might emit
+the 'error' event and  has to support the method `send(data)`. The messages
+given to `send()` and expected from `message` are native JavaScript objects.
+You might have to encode and decode JSON in your channel. See `src/main.coffee`
+for an example.
 
 The `Guest` might join a room if it receives a `join_room` message from the
 client. You do not have to do anything else on the server side to make

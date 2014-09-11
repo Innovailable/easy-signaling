@@ -27,6 +27,23 @@ BIND_HOST = process.env.BIND_HOST ? "0.0.0.0"
 WebSocketServer = require('ws').Server
 Hotel = require('./signaling').Hotel
 
+class WebsocketChannel extends EventEmitter
+
+  constructor: (@ws) ->
+    @ws.on 'message', (msg) =>
+      try
+        data = JSON.parse(msg)
+        @emit('message', data)
+      catch
+        @emit('error', "Error parsing incoming message: " + data)
+
+    @ws.on 'close', () =>
+      @emit('close')
+
+  send: (data) ->
+    msg = JSON.stringify(data)
+    @ws.send(msg)
+
 # start doing stuff ...
 hotel = new Hotel()
 wss = new WebSocketServer({port: BIND_PORT, host: BIND_HOST})
@@ -35,5 +52,6 @@ logger.info("Starting server on '" + BIND_HOST + ":" + BIND_PORT + "'")
 
 wss.on 'connection', (ws) ->
   logger.debug("Accepting connection")
-  hotel.create_guest(ws)
+  channel = new WebsocketChannel(ws)
+  hotel.create_guest(channel)
 
