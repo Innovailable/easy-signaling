@@ -31,7 +31,7 @@ is_empty = (obj) ->
   return true
 
 
-class Hotel
+class Hotel extends EventEmitter
 
   constructor: () ->
     @rooms = {}
@@ -54,11 +54,17 @@ class Hotel
       logger.debug("Cleaning up room '" + name + "'")
       delete @rooms[name]
 
+      @emit('room_removed', room)
+
+    @emit('room_created', room)
+
     return room
 
 
   create_guest: (conn) ->
-    return new Guest(conn, this)
+    guest = new Guest(conn, this)
+    @emit('guest_created', guest)
+    return guest
 
 
 class Room extends EventEmitter
@@ -80,16 +86,19 @@ class Room extends EventEmitter
   join: (guest) ->
     @guests[guest.id] = guest
 
+    @emit('guest_joined', guest)
 
-  leave: (guest) ->
-    if not @guests[guest.id]?
-      logger.error("Guest is trying to leave without being in the room")
-      return
+    guest.on 'left', () =>
+      if not @guests[guest.id]?
+        logger.error("Guest is trying to leave without being in the room")
+        return
 
-    delete @guests[guest.id]
+      delete @guests[guest.id]
 
-    if is_empty(@guests)
-      @emit 'empty'
+      @emit('guest_left', guest)
+
+      if is_empty(@guests)
+        @emit 'empty'
 
 
 class Guest extends EventEmitter
@@ -140,6 +149,8 @@ class Guest extends EventEmitter
           status: @status
         }, @id
 
+        @emit('joined', @room)
+
       when 'send_to_peer'
         if not data?.peer_id or not data?.data?.event
           @error("'send_to_peer' is missing a mandatory value")
@@ -175,6 +186,9 @@ class Guest extends EventEmitter
     # tell log
     logger.error(msg)
 
+    # tell library user
+    @emit('error', msg)
+
     # end it all
     @conn.close()
 
@@ -185,7 +199,7 @@ class Guest extends EventEmitter
       sender_id: @id
     }, @id
 
-    @room?.leave(this)
+    @emit('left')
 
 
 module.exports =
