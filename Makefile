@@ -2,6 +2,8 @@ PATH := ./node_modules/.bin:${PATH}
 
 .PHONY : init clean-docs clean build test dist publish
 
+all: build
+
 init:
 	npm install
 
