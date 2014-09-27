@@ -37,10 +37,6 @@ class Hotel extends EventEmitter
     @rooms = {}
 
 
-  get_room: (name) ->
-    return @rooms[name]
-
-
   create_room: (name) ->
     if @rooms[name]?
       logger.error("Trying to create room which already exists")
@@ -48,7 +44,7 @@ class Hotel extends EventEmitter
 
     logger.debug("Creating room '" + name + "'")
 
-    room = @rooms[name] = new Room(this)
+    room = @rooms[name] = new Room(name, this)
 
     room.on 'empty', () =>
       logger.debug("Cleaning up room '" + name + "'")
@@ -69,7 +65,7 @@ class Hotel extends EventEmitter
 
 class Room extends EventEmitter
 
-  constructor: () ->
+  constructor: (@name) ->
     @guests = {}
 
 
@@ -128,7 +124,7 @@ class Guest extends EventEmitter
         @status = data.status or {}
 
         # find room
-        @room = @hotel.get_room(data.room_id)
+        @room = @hotel.rooms[data.room_id]
         if not @room
           @room = @hotel.create_room(data.room_id)
 
