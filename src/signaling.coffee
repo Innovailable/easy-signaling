@@ -101,9 +101,9 @@ class Guest extends EventEmitter
 
   constructor: (@conn, @hotel) ->
     @id = uuid.v4()
-    conn.on 'message', (data) => @receive(data)
-    conn.on 'error', (msg) => @error(msg)
-    conn.on 'close', () => @closing()
+    @conn.on 'message', (data) => @receive(data)
+    @conn.on 'error', (msg) => @error(msg)
+    @conn.on 'close', () => @closing()
 
 
   receive: (data) ->
@@ -166,6 +166,19 @@ class Guest extends EventEmitter
 
         # pass on
         @room.send(payload, data.peer_id)
+
+      when 'update_status'
+        if not data.status?
+          @error("'update_status' is missing the status")
+          return
+
+        if not @room?
+          @error("Attempted 'update_status' without being in a room")
+          return
+
+        @status = data.status
+
+        @room.broadcast({event: 'peer_updated_status', sender_id: @id, data: data.status }, @id)
 
 
   send: (data) ->
