@@ -35,8 +35,8 @@ class WebsocketChannel extends EventEmitter
       try
         data = JSON.parse(msg)
         @emit('message', data)
-      catch
-        @emit('error', "Error parsing incoming message: " + data)
+      catch err
+        @emit('error', "Error processing incoming message: " + err.message)
 
     @ws.on 'close', () =>
       @emit('close')
@@ -44,6 +44,9 @@ class WebsocketChannel extends EventEmitter
   send: (data) ->
     msg = JSON.stringify(data)
     @ws.send(msg)
+
+  close: () ->
+    @ws.close()
 
 # start doing stuff ...
 hotel = new Hotel()
@@ -54,5 +57,6 @@ logger.info("Starting server on '" + BIND_HOST + ":" + BIND_PORT + "'")
 wss.on 'connection', (ws) ->
   logger.debug("Accepting connection")
   channel = new WebsocketChannel(ws)
-  hotel.create_guest(channel)
+  room = ws.upgradeReq.url
+  hotel.create_guest(channel, room)
 

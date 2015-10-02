@@ -4,18 +4,25 @@ PATH := ./node_modules/.bin:${PATH}
 
 all: build
 
-init:
+init: node_modules
+
+node_modules:
 	npm install
 
 clean:
 	rm -rf dist/
 
-build:
-	coffee -o dist/ -c src/
+doc:
+	node_modules/.bin/yuidoc --syntaxtype coffee -e .coffee -o doc src
+
+build: init
+	node_modules/.bin/coffee -o dist/ -c src/
 	sed -i '1i#!/usr/bin/env node' dist/main.js
 
-dist: clean init build
+dist: build
 	npm pack
 
 publish: dist
 	npm publish
+
+.PHONY: doc build dist publich clean init all

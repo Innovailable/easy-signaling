@@ -1,4 +1,5 @@
 *.swp
 dist
 node_modules
+doc
 *.tgz

@@ -30,26 +30,57 @@ is_empty = (obj) ->
 
   return true
 
+###*
+# A simple signaling server for WebRTC applications
+# @module easy-signaling
+###
 
+###*
+# Manages `Room`s and its `Guest`s
+# @class Hotel
+#
+# @constructor
+#
+# @example
+#     var hotel = new Hotel()
+#     guest_a = hotel.create_guest(conn_a, 'room')
+#     guest_b = hotel.create_guest(conn_b, 'room')
+###
 class Hotel extends EventEmitter
+
+  ###*
+  # A new room was created
+  # @event room_created
+  # @param {Room} room The new room
+  ###
+
+  ###*
+  # A new room was removed because all guests left
+  # @event room_removed
+  # @param {Room} room The empty room
+  ###
 
   constructor: () ->
     @rooms = {}
 
 
-  create_room: (name) ->
+  ###*
+  # Get a room. The room is created if it did not exist. Room will be removed when empty.
+  # @method get_room
+  # @private
+  # @param {String} name The name of the room
+  # @return {Room}
+  ###
+  get_room: (name) ->
     if @rooms[name]?
-      logger.error("Trying to create room which already exists")
-      return
+      return @rooms[name]
 
     logger.debug("Creating room '" + name + "'")
 
     room = @rooms[name] = new Room(name, this)
 
     room.on 'empty', () =>
-      logger.debug("Cleaning up room '" + name + "'")
       delete @rooms[name]
-
       @emit('room_removed', room)
 
     @emit('room_created', room)
@@ -57,29 +88,94 @@ class Hotel extends EventEmitter
     return room
 
 
-  create_guest: (conn) ->
-    guest = new Guest(conn, this)
-    @emit('guest_created', guest)
-    return guest
+  ###*
+  # Create a new guest which might join the room with the given name
+  # @method create_guest
+  # @param conn The connection to the guest
+  # @param {String} room_name The name of the room to join
+  # @return {Guest}
+  ###
+  create_guest: (conn, room_name) ->
+    return new Guest(conn, () => @get_room(room_name))
 
 
+###*
+# A room containing and conencting `Guest`s. Can be created by a `Hotel` or used alone.
+# @class Room
+#
+# @constructor
+# @param {String} name
+#
+# @example
+#     var room = new Room()
+#     guest_a = room.create_guest(conn_a)
+#     guest_b = room.create_guest(conn_b)
+###
 class Room extends EventEmitter
+
+  ###*
+  # A guest joined the room
+  # @event guest_joined
+  # @param {Guest} guest The new guest
+  ###
+
+  ###*
+  # A guest left the room
+  # @event guest_left
+  # @param {Guest} guest The leaving guest
+  ###
+
+  ###*
+  # The room was left by all guests
+  # @event empty
+  ###
+
+  ###*
+  # The current guests of the room
+  # @property guests
+  # @readonly
+  # @private
+  ###
 
   constructor: (@name) ->
     @guests = {}
 
 
+  ###*
+  # Send a message to all guest except the sender
+  # @method broadcast
+  # @private
+  # @param {Object} msg The message
+  # @param {String} sender The sender of the message who will be skipped
+  ###
   broadcast: (msg, sender) ->
     for id, guest of @guests
       if guest.id != sender
         guest.send(msg)
 
 
-  send: (msg, receiver) ->
-    @guests[receiver]?.send(msg)
+  ###*
+  # Send a message to a guest
+  # @method send
+  # @private
+  # @param {Object} msg The message
+  # @param {String} recipient The recipient of the message
+  ###
+  send: (msg, recipient) ->
+    @guests[recipient]?.send(msg)
 
 
+  ###*
+  # A guest joins the room
+  # @method join
+  # @private
+  # @param {Guest} guets The guest which joins the room
+  # @return {Boolean} `true` if and only if the guest could join
+  ###
   join: (guest) ->
+    if @guests[guest.id]?
+      return false
+
     @guests[guest.id] = guest
 
     @emit('guest_joined', guest)
@@ -94,118 +190,182 @@ class Room extends EventEmitter
       @emit('guest_left', guest)
 
       if is_empty(@guests)
-        @emit 'empty'
+        @emit('empty')
+
+    return true
 
 
+  ###*
+  # Create a guest which might join the room
+  # @method create_guest
+  # @param conn The connection to the guest
+  ###
+  create_guest: (conn) ->
+    return new Guest(conn, () => @)
+
+
+###*
+# A guest which might join a `Room`
+# @class Guest
+#
+# @constructor
+# @param conn The connection to the guest
+# @param {Function} room_fun Connection which will be called upon joining and which should return the Room to join
+###
 class Guest extends EventEmitter
 
-  constructor: (@conn, @hotel) ->
+  ###*
+  # Guest joined a room
+  # @event joined
+  # @param {Room} room The joined room
+  ###
+
+  ###*
+  # Guest left the room
+  # @event left
+  # @param {Room} room The joined room
+  ###
+
+  ###*
+  # The status of the guest changed
+  # @event status_changed
+  # @param {Object} status The new status
+  ###
+
+  ###*
+  # The unique identifier of the guest
+  # @property id
+  # @type String
+  ###
+
+  ###*
+  # The status object of the guest. Will only be available after joining.
+  # @property status
+  # @type Object
+  ###
+
+  constructor: (@conn, @room_fun) ->
     @id = uuid.v4()
     @conn.on 'message', (data) => @receive(data)
     @conn.on 'error', (msg) => @error(msg)
     @conn.on 'close', () => @closing()
 
 
+  ###*
+  # The guest receives data
+  # @method receive
+  # @private
+  # @param {Object} data The incoming message
+  ###
   receive: (data) ->
-    if not data.event?
-      @error("Incoming message does not include event")
+    if not data.type?
+      @error("Incoming message does not have a type")
       return
 
-    switch data.event
-      when 'join_room'
-        if not data.room_id?
-          @error("'join_room' is missing room id")
-          return
+    switch data.type
+      when 'join'
+        @room = @room_fun()
 
-        # leave if already in a room
-        if @room then @room.leave(this)
+        peers = {}
+
+        for id, guest of @room.guests
+          peers[id] = guest.status
+
+        if not @room.join(@)
+          @error("Unable to join")
+          return
 
         # save status
         @status = data.status or {}
 
-        # find room
-        @room = @hotel.rooms[data.room_id]
-        if not @room
-          @room = @hotel.create_room(data.room_id)
-
         # tell new guest
-        @send {
-          event: 'joined_room'
-          own_id: @id
-          peers: ({ peer_id: id, status: guest.status } for id, guest of @room.guests)
-        }
-
-        # get in
-        @room.join(this)
+        @send({
+          type: 'joined'
+          peers: peers
+        })
 
         # tell everyone else
-        @room.broadcast {
-          event: 'new_peer'
-          peer_id: @id
+        @room.broadcast({
+          type: 'peer_joined'
+          peer: @id
           status: @status
-        }, @id
+        }, @id)
 
         @emit('joined', @room)
+        @emit('status_changed', @status)
 
-      when 'send_to_peer'
-        if not data?.peer_id or not data?.data?.event
-          @error("'send_to_peer' is missing a mandatory value")
+      when 'to'
+        if not data.peer? or not data.event?
+          @error("'to' is missing a mandatory value")
           return
 
         if not @room?
-          @error("Attempted 'send_to_peer' without being in a room")
+          @error("Attempted 'to' without being in a room")
           return
-
-        if data.event in ['peer_left', 'new_peer', 'joined_room', 'error']
-          @error("Trying to send privileged command with 'send_to_peer'")
-          return
-
-        # get and modify payload ... ugly!
-        payload = data.data
-        payload.sender_id = @id
 
         # pass on
-        @room.send(payload, data.peer_id)
+        @room.send({type: 'from', peer: @id, event: data.event, data: data.data}, data.peer)
 
-      when 'update_status'
+      when 'status'
         if not data.status?
           @error("'update_status' is missing the status")
           return
 
         if not @room?
-          @error("Attempted 'update_status' without being in a room")
+          @error("Attempted 'status' without being in a room")
           return
 
         @status = data.status
+        @emit('status_changed', @status)
 
-        @room.broadcast({event: 'peer_updated_status', sender_id: @id, data: data.status }, @id)
+        @room.broadcast({tpye: 'peer_status', peer: @id, status: data.status}, @id)
+
+      when 'leave'
+        @conn.close()
 
 
+  ###*
+  # The guest sends data
+  # @method send
+  # @private
+  # @param {Object} data The outgoing message
+  ###
   send: (data) ->
     @conn.send(data)
 
 
+  ###*
+  # The guest encountered an error
+  # @method error
+  # @private
+  # @param {Error} The error which was encountered
+  ###
   error: (msg) ->
     # tell client
     @send {
-      event: 'error'
-      message: msg
+      type: 'error'
+      msg: msg
     }
 
     # tell log
     logger.error(msg)
 
     # tell library user
-    @emit('error', msg)
+    #@emit('error', msg)
 
     # end it all
     @conn.close()
 
 
+  ###*
+  # The connection to the guest is closing
+  # @method closing
+  # @private
+  ###
   closing: () ->
     @room?.broadcast {
-      event: 'peer_left'
-      sender_id: @id
+      type: 'peer_left'
+      peer: @id
     }, @id
 
     @emit('left')
@@ -213,4 +373,6 @@ class Guest extends EventEmitter
 
 module.exports =
   Hotel: Hotel
+  Room: Room
+  Guest: Guest
 
