@@ -1,7 +1,5 @@
 PATH := ./node_modules/.bin:${PATH}
 
-.PHONY : init clean-docs clean build test dist publish
-
 all: build
 
 init: node_modules
@@ -19,6 +17,9 @@ doc: init
 build: init
 	node_modules/.bin/coffee -o dist/ -c src/
 	sed -i '1i#!/usr/bin/env node' dist/main.js
+
+test: init
+	npm test
 
 dist: build
 	npm pack
