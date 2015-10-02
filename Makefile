@@ -6,13 +6,14 @@ all: build
 
 init: node_modules
 
-node_modules:
+node_modules: package.json
 	npm install
+	touch node_modules
 
 clean:
 	rm -rf dist/
 
-doc:
+doc: init
 	node_modules/.bin/yuidoc --syntaxtype coffee -e .coffee -o doc src
 
 build: init
