@@ -18,6 +18,37 @@
 #
 ###############################################################################
 
+###*
+# Concept of a channel connecting the client to the signaling server. This is not an actual class but the description of the interface used to represent the communication channels. For a reference implementation look at `WebsocketChannel`.
+#
+# The interface expects JavaScript Objects to come in and out of the API. You most propably want to encode the messages on the transport channel, for example using JSON.
+#
+# @class Channel
+###
+###*
+# A message was received. You might have to decode the data.
+# @event message
+# @param {Object} data The decoded message
+###
+###*
+# The connection was closed
+# @event closed
+###
+###*
+# An error occured with the underlying connection.
+# @event error
+# @param {Error} error The error which occured
+###
+###*
+# Send data to the client. You might have to encode the data for transmission.
+# @method send
+# @param {Object} data The message to be sent
+###
+###*
+# Close the connection to the client
+# @method close
+###
+
 uuid = require('node-uuid')
 
 EventEmitter = require('events').EventEmitter
@@ -91,7 +122,7 @@ class Hotel extends EventEmitter
   ###*
   # Create a new guest which might join the room with the given name
   # @method create_guest
-  # @param conn The connection to the guest
+  # @param {Channel} conn The connection to the guest
   # @param {String} room_name The name of the room to join
   # @return {Guest}
   ###
@@ -128,6 +159,12 @@ class Room extends EventEmitter
   ###*
   # The room was left by all guests
   # @event empty
+  ###
+
+  ###*
+  # The name of the room
+  # @property name
+  # @readonly
   ###
 
   ###*
@@ -198,7 +235,7 @@ class Room extends EventEmitter
   ###*
   # Create a guest which might join the room
   # @method create_guest
-  # @param conn The connection to the guest
+  # @param {Channel} conn The connection to the guest
   ###
   create_guest: (conn) ->
     return new Guest(conn, () => @)
@@ -209,7 +246,7 @@ class Room extends EventEmitter
 # @class Guest
 #
 # @constructor
-# @param conn The connection to the guest
+# @param {Channel} conn The connection to the guest
 # @param {Function} room_fun Connection which will be called upon joining and which should return the Room to join
 ###
 class Guest extends EventEmitter
@@ -235,12 +272,14 @@ class Guest extends EventEmitter
   ###*
   # The unique identifier of the guest
   # @property id
+  # @readonly
   # @type String
   ###
 
   ###*
   # The status object of the guest. Will only be available after joining.
   # @property status
+  # @readonly
   # @type Object
   ###
 
@@ -248,7 +287,7 @@ class Guest extends EventEmitter
     @id = uuid.v4()
     @conn.on 'message', (data) => @receive(data)
     @conn.on 'error', (msg) => @error(msg)
-    @conn.on 'close', () => @closing()
+    @conn.on 'closed', () => @closing()
 
 
   ###*

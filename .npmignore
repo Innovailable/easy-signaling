@@ -1,3 +1,5 @@
 src
+doc
 Makefile
 *.tgz
+.npmignore

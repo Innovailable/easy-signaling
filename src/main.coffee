@@ -20,36 +20,17 @@
 ###############################################################################
 
 logger = require('log4js').getLogger()
-EventEmitter = require('events').EventEmitter
 
 BIND_PORT = process.env.BIND_PORT ? 8080
 BIND_HOST = process.env.BIND_HOST ? "0.0.0.0"
 
 WebSocketServer = require('ws').Server
 Hotel = require('./signaling').Hotel
-
-class WebsocketChannel extends EventEmitter
-
-  constructor: (@ws) ->
-    @ws.on 'message', (msg) =>
-      try
-        data = JSON.parse(msg)
-        @emit('message', data)
-      catch err
-        @emit('error', "Error processing incoming message: " + err.message)
-
-    @ws.on 'close', () =>
-      @emit('close')
-
-  send: (data) ->
-    msg = JSON.stringify(data)
-    @ws.send(msg)
-
-  close: () ->
-    @ws.close()
+WebsocketChannel = require('./websocket_channel').WebsocketChannel
 
 # start doing stuff ...
 hotel = new Hotel()
+
 wss = new WebSocketServer({port: BIND_PORT, host: BIND_HOST})
 
 logger.info("Starting server on '" + BIND_HOST + ":" + BIND_PORT + "'")
