@@ -1,0 +1,25 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/bin/node', '/usr/bin/npm', 'adduser' ]
+2 info using npm@1.4.28
+3 info using node@v0.10.40
+4 verbose node symlink /usr/bin/node
+5 error Error: canceled
+5 error     at Interface.<anonymous> (/usr/lib/node_modules/npm/node_modules/read/lib/read.js:66:13)
+5 error     at Interface.emit (events.js:92:17)
+5 error     at Interface._ttyWrite (readline.js:621:16)
+5 error     at ReadStream.onkeypress (readline.js:100:10)
+5 error     at ReadStream.emit (events.js:98:17)
+5 error     at emitKey (readline.js:1096:12)
+5 error     at ReadStream.onData (readline.js:841:14)
+5 error     at ReadStream.emit (events.js:95:17)
+5 error     at ReadStream.<anonymous> (_stream_readable.js:765:14)
+5 error     at ReadStream.emit (events.js:92:17)
+6 error If you need help, you may report this *entire* log,
+6 error including the npm and node versions, at:
+6 error     <http://github.com/npm/npm/issues>
+7 error System Linux 3.16.0-4-amd64
+8 error command "/usr/bin/node" "/usr/bin/npm" "adduser"
+9 error cwd /home/thammi/proggen/innovailable/easy-signaling
+10 error node -v v0.10.40
+11 error npm -v 1.4.28
+12 verbose exit [ 1, true ]

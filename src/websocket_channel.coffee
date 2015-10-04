@@ -3,6 +3,7 @@ EventEmitter = require('events').EventEmitter
 ###*
 # A signaling channel using WebSockets. Wraps around `ws` WebSockets. Reference implementation of a channel.
 # @class WebsocketChannel
+# @extends events.EventEmitter
 #
 # @constructor
 # @param {WebSocket} ws The websocket connection with the client

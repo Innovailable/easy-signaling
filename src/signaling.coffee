@@ -24,6 +24,7 @@
 # The interface expects JavaScript Objects to come in and out of the API. You most propably want to encode the messages on the transport channel, for example using JSON.
 #
 # @class Channel
+# @extends events.EventEmitter
 ###
 ###*
 # A message was received. You might have to decode the data.
@@ -69,6 +70,7 @@ is_empty = (obj) ->
 ###*
 # Manages `Room`s and its `Guest`s
 # @class Hotel
+# @extends events.EventEmitter
 #
 # @constructor
 #
@@ -91,6 +93,12 @@ class Hotel extends EventEmitter
   # @param {Room} room The empty room
   ###
 
+  ###*
+  # An object containing the rooms with their names as keys
+  # @property rooms
+  # @private
+  ###
+
   constructor: () ->
     @rooms = {}
 
@@ -105,8 +113,6 @@ class Hotel extends EventEmitter
   get_room: (name) ->
     if @rooms[name]?
       return @rooms[name]
-
-    logger.debug("Creating room '" + name + "'")
 
     room = @rooms[name] = new Room(name, this)
 
@@ -133,6 +139,7 @@ class Hotel extends EventEmitter
 ###*
 # A room containing and conencting `Guest`s. Can be created by a `Hotel` or used alone.
 # @class Room
+# @extends events.EventEmitter
 #
 # @constructor
 # @param {String} name
@@ -244,6 +251,7 @@ class Room extends EventEmitter
 ###*
 # A guest which might join a `Room`
 # @class Guest
+# @extends events.EventEmitter
 #
 # @constructor
 # @param {Channel} conn The connection to the guest
@@ -357,7 +365,7 @@ class Guest extends EventEmitter
         @status = data.status
         @emit('status_changed', @status)
 
-        @room.broadcast({tpye: 'peer_status', peer: @id, status: data.status}, @id)
+        @room.broadcast({type: 'peer_status', peer: @id, status: data.status}, @id)
 
       when 'leave'
         @conn.close()
