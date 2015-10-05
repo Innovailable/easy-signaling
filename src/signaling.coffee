@@ -102,7 +102,7 @@ class Hotel extends EventEmitter
 
 
   ###*
-  # Get a room. The room is created if it did not exist. Room will be removed when empty.
+  # Get a room. The room is created if it did not exist. The room will be removed when it throws `empty`.
   # @method get_room
   # @private
   # @param {String} name The name of the room
@@ -250,7 +250,10 @@ class Room extends EventEmitter
 
 
 ###*
-# A guest which might join a `Room`
+# A guest which might join a `Room`.
+#
+# It will join the room once the client sends 'join' and and leave once it emits the 'left' event.
+#
 # @class Guest
 # @extends events.EventEmitter
 #
