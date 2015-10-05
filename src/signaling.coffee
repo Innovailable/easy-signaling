@@ -54,8 +54,6 @@ uuid = require('node-uuid')
 
 EventEmitter = require('events').EventEmitter
 
-logger = require('log4js').getLogger()
-
 is_empty = (obj) ->
   for _, _ of obj
     return false
@@ -206,7 +204,11 @@ class Room extends EventEmitter
   # @param {String} recipient The recipient of the message
   ###
   send: (msg, recipient) ->
-    @guests[recipient]?.send(msg)
+    if @guests[recipient]
+      @guests[recipient].send(msg)
+      return true
+    else
+      return false
 
 
   ###*
@@ -226,7 +228,6 @@ class Room extends EventEmitter
 
     guest.on 'left', () =>
       if not @guests[guest.id]?
-        logger.error("Guest is trying to leave without being in the room")
         return
 
       delete @guests[guest.id]
@@ -351,7 +352,8 @@ class Guest extends EventEmitter
           return
 
         # pass on
-        @room.send({type: 'from', peer: @id, event: data.event, data: data.data}, data.peer)
+        if not @room.send({type: 'from', peer: @id, event: data.event, data: data.data}, data.peer)
+          @error("Trying to send to unknown peer")
 
       when 'status'
         if not data.status?
@@ -394,14 +396,8 @@ class Guest extends EventEmitter
       msg: msg
     }
 
-    # tell log
-    logger.error(msg)
-
     # tell library user
     #@emit('error', msg)
-
-    # end it all
-    @conn.close()
 
 
   ###*
