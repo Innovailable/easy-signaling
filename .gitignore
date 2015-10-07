@@ -1,4 +1,4 @@
-*.swp
+*.sw?
 dist
 node_modules
 doc
