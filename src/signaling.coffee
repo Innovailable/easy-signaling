@@ -202,6 +202,7 @@ class Room extends EventEmitter
   # @private
   # @param {Object} msg The message
   # @param {String} recipient The recipient of the message
+  # @return {Boolean} True if the recipient exists
   ###
   send: (msg, recipient) ->
     if @guests[recipient]
@@ -212,7 +213,7 @@ class Room extends EventEmitter
 
 
   ###*
-  # A guest joins the room
+  # A guest joins the room. Will be removed when it emits 'left'
   # @method join
   # @private
   # @param {Guest} guets The guest which joins the room
@@ -244,6 +245,7 @@ class Room extends EventEmitter
   # Create a guest which might join the room
   # @method create_guest
   # @param {Channel} conn The connection to the guest
+  # @return {Guest}
   ###
   create_guest: (conn) ->
     return new Guest(conn, () => @)
@@ -259,7 +261,7 @@ class Room extends EventEmitter
 #
 # @constructor
 # @param {Channel} conn The connection to the guest
-# @param {Function} room_fun Connection which will be called upon joining and which should return the Room to join
+# @param {Function} room_fun Function which will be called upon joining and which should return the Room to join
 ###
 class Guest extends EventEmitter
 
