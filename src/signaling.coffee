@@ -188,7 +188,7 @@ class Room extends EventEmitter
   # @method broadcast
   # @private
   # @param {Object} msg The message
-  # @param {String} sender The sender of the message who will be skipped
+  # @param {String} sender The id of the sender of the message (who will be skipped)
   ###
   broadcast: (msg, sender) ->
     for id, guest of @guests
