@@ -29,6 +29,7 @@ class TestChannel extends EventEmitter
 
 class TestGuest extends EventEmitter
   constructor: (@id) ->
+    @send = sinon.spy()
 
 
 describe 'Hotel', () ->
@@ -97,10 +98,6 @@ describe 'Room', () ->
     guest_a = new TestGuest('a')
     guest_b = new TestGuest('b')
     guest_c = new TestGuest('c')
-
-    guest_a.send = sinon.spy()
-    guest_b.send = sinon.spy()
-    guest_c.send = sinon.spy()
 
     message = {type: 'ping'}
 
