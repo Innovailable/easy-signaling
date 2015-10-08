@@ -27,6 +27,10 @@ class TestChannel extends EventEmitter
     @closed = true
 
 
+class TestGuest extends EventEmitter
+  constructor: (@id) ->
+
+
 describe 'Hotel', () ->
 
   hotel = null
@@ -89,8 +93,25 @@ describe 'Room', () ->
     room.guests[guest_a.id].should.equal(guest_a)
     room.guests[guest_b.id].should.equal(guest_b)
 
+  it 'should send to all other guests on broadcast', () ->
+    guest_a = new TestGuest('a')
+    guest_b = new TestGuest('b')
+    guest_c = new TestGuest('c')
 
+    guest_a.send = sinon.spy()
+    guest_b.send = sinon.spy()
+    guest_c.send = sinon.spy()
 
+    message = {type: 'ping'}
 
+    room.join(guest_a).should.be.true
+    room.join(guest_b).should.be.true
+    room.join(guest_c).should.be.true
 
+    room.broadcast(message, guest_a.id)
 
+    guest_a.send.callCount.should.be.equal(0)
+    guest_b.send.calledOnce.should.be.true
+    guest_b.send.calledWith(message).should.be.true
+    guest_c.send.calledOnce.should.be.true
+    guest_c.send.calledWith(message).should.be.true

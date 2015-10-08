@@ -17,6 +17,7 @@
     "mocha": "^2.3.3",
     "object-keys": "^1.0.7",
     "q": "^1.4.1",
+    "sinon": "^1.17.1",
     "yuidocjs": "^0.9.0"
   },
   "main": "dist/lib.js",
