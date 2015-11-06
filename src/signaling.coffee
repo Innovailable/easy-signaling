@@ -298,7 +298,6 @@ class Guest extends EventEmitter
   ###
 
   constructor: (@conn, @room_fun) ->
-    @id = uuid.v4()
     @conn.on 'message', (data) => @receive(data)
     @conn.on 'error', (msg) => @error(msg)
     @conn.on 'closed', () => @closing()
@@ -317,32 +316,48 @@ class Guest extends EventEmitter
 
     switch data.type
       when 'join'
+        # get/create room
+
         @room = @room_fun()
+
+        # get unique id
+
+        while not @id? or @room.guests[@id]?
+          @id = uuid.v4()
+
+        # prepare peer list
 
         peers = {}
 
         for id, guest of @room.guests
           peers[id] = guest.status
 
+        # try to join
+
         if not @room.join(@)
           @error("Unable to join")
           return
 
         # save status
+
         @status = data.status or {}
 
         # tell new guest
+
         @send({
           type: 'joined'
           peers: peers
         })
 
         # tell everyone else
+
         @room.broadcast({
           type: 'peer_joined'
           peer: @id
           status: @status
         }, @id)
+
+        # tell library user
 
         @emit('joined', @room)
         @emit('status_changed', @status)
