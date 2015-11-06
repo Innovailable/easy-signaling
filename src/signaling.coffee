@@ -346,6 +346,7 @@ class Guest extends EventEmitter
 
         @send({
           type: 'joined'
+          id: @id
           peers: peers
         })
 
