@@ -36,14 +36,17 @@ class WebsocketChannel extends EventEmitter
         data = JSON.parse(msg)
         @emit('message', data)
       catch
-        @emit('error', "Error parsing incoming message: " + data)
+        @emit('warning', "Error parsing incoming message: " + data)
 
     @ws.on 'close', () =>
       @emit('close')
 
   send: (data) ->
-    msg = JSON.stringify(data)
-    @ws.send(msg)
+    try
+      msg = JSON.stringify(data)
+      @ws.send(msg)
+    catch
+      @emit('warning', "Unable to send" + data)
 
 # start doing stuff ...
 hotel = new Hotel()

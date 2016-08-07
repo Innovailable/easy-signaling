@@ -196,7 +196,7 @@ class Guest extends EventEmitter
     logger.error(msg)
 
     # tell library user
-    @emit('error', msg)
+    @emit('warning', msg)
 
     # end it all
     @conn.close()
