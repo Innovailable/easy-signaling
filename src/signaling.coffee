@@ -178,7 +178,7 @@ class Guest extends EventEmitter
 
         @status = data.status
 
-        @room.broadcast({event: 'peer_updated_status', sender_id: @id, data: data.status }, @id)
+        @room.broadcast({event: 'peer_updated_status', sender_id: @id, status: data.status }, @id)
 
 
   send: (data) ->
