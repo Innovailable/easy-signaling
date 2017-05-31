@@ -4,14 +4,17 @@ PATH := ./node_modules/.bin:${PATH}
 
 all: build
 
-init:
-	npm install
+init: node_modules
 
 clean:
 	rm -rf dist/
 
-build:
-	coffee -o dist/ -c src/
+node_modules: package.json
+	npm install
+
+build: node_modules
+	npm install
+	node_modules/.bin/coffee -o dist/ -c src/
 	sed -i '1i#!/usr/bin/env node' dist/main.js
 
 dist: clean init build
