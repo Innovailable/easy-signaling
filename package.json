@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node dist/main.js",
-    "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script/register --recursive"
+    "test": "./node_modules/.bin/mocha --require coffee-script/register --recursive test/**/*.coffee"
   },
   "devDependencies": {
     "chai": "^3.3.0",

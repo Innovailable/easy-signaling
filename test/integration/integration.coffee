@@ -2,6 +2,9 @@ es = require('../../src/lib')
 WebSocket = require('ws')
 Q = require('q')
 keys = require('object-keys')
+chai = require('chai')
+
+chai.should()
 
 PORT=6578
 
@@ -67,8 +70,8 @@ describe 'Integration tests', () ->
   before () ->
     wss = new WebSocket.Server({port: PORT})
 
-    wss.on 'connection', (ws) ->
-      room = ws.upgradeReq.url
+    wss.on 'connection', (ws, req) ->
+      room = req.url
       channel = new es.WebsocketChannel(ws)
       hotel.create_guest(channel, room)
 
