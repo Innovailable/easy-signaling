@@ -3,11 +3,12 @@
   "description": "A WebRTC signaling server",
   "version": "1.0.1",
   "dependencies": {
-    "log4js": "^0.6.27",
-    "node-uuid": "^1.4.3",
-    "ws": "^0.8.0"
+    "log4js": "^6.3.0",
+    "node-uuid": "^1.4.8",
+    "ws": "^7.4.3"
   },
   "scripts": {
+    "start": "node dist/main.js",
     "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script/register --recursive"
   },
   "devDependencies": {
@@ -18,7 +19,7 @@
     "object-keys": "^1.0.7",
     "q": "^1.4.1",
     "sinon": "^1.17.1",
-    "yuidocjs": "^0.9.0"
+    "yuidocjs": "^0.10.2"
   },
   "main": "dist/lib.js",
   "repository": {

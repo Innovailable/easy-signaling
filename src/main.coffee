@@ -35,9 +35,9 @@ wss = new WebSocketServer({port: BIND_PORT, host: BIND_HOST})
 
 logger.info("Starting server on '" + BIND_HOST + ":" + BIND_PORT + "'")
 
-wss.on 'connection', (ws) ->
+wss.on 'connection', (ws, req) ->
   logger.debug("Accepting connection")
   channel = new WebsocketChannel(ws)
-  room = ws.upgradeReq.url
+  room = req.url
   hotel.create_guest(channel, room)
 
