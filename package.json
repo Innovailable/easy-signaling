@@ -6,13 +6,12 @@
     "start": "node dist/main.js"
   },
   "dependencies": {
-    "ws": "",
-    "log4js": "",
-    "node-uuid": ""
+    "log4js": "^6.3.0",
+    "node-uuid": "^1.4.8",
+    "ws": "^7.4.3"
   },
   "devDependencies": {
-    "coffee-script": "",
-    "coffeescript": "^1.12.6"
+    "coffeescript": "^1.12.7"
   },
   "main": "dist/main.js",
   "repository": {
